@@ -64,7 +64,7 @@ class HashTable:
         # Your code here
         hash = 5381
         for x in key:
-            hash = ((hash<<5)+hash)+ord(x)
+            hash = ((hash<<5)+hash)+ord(x) #ord finds the ordinal value of each character
         return hash & 0xFFFFFFFF
 
 
@@ -74,20 +74,34 @@ class HashTable:
         between within the storage capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.djb2(key) % self.capacity #performing modulo operation after using djb2 encoding
 
     def put(self, key, value):
         """
         Store the value with the given key.
         Hash collisions should be handled with Linked List Chaining.
-        Implement this.
+        
+        Value is always non negative
+        type key: int
+        type value: int
         """
-        # Your code here
+
         i = self.hash_index(key)
-        self.storage[i] = value 
+        if self.storage[i] == None:
+            self.storage[i] = HashTableEntry(key,value) #adds new entry
+        else:
+            cur = self.storage[i]
+            while True:
+                if cur.key == key:
+                    cur.value = value
+                    return
+                if cur.next == None: break
+                cur = cur.next
+            cur.next = HashTableEntry(key,value)
+        
 
 
-    def delete(self, key):
+    def delete(self, key) -> None:
         """
         Remove the value stored with the given key.
         Print a warning if the key is not found.
@@ -95,7 +109,23 @@ class HashTable:
         """
         # Your code here
         i = self.hash_index(key)    
-        self.storage[i] = None
+        cur = prev = self.storage[i]
+
+        #removing from empty bin just return
+        if not cur: return
+
+        if cur.key == key:
+            self.storage[i] = cur.next
+
+        else:
+            cur = cur.next
+
+            while cur:
+                if cur.key == key:
+                    prev.next = cur.next
+                    break
+                else:
+                    cur, prev = cur.next, prev.next
 
 
     def get(self, key):
@@ -106,7 +136,13 @@ class HashTable:
         """
         # Your code here
         i = self.hash_index(key)
-        return self.storage[i]
+        cur = self.storage[i]
+        while cur:
+            if cur.key == key:
+                return cur.value #if it matches key, show
+            else:
+                cur = cur.next #else move on to the next one.
+        return -1
 
 
     def resize(self, new_capacity):
